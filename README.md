@@ -8,7 +8,7 @@
 2. wtm17_script.R
 3. WTM17_markdown.Rmd
 
-##### Resources I get helped:
+##### Resources
 1. Mine Çetinkaya-Rundell’s rpubs presentation
 2. Berk Orbay’s Github (github.com/berkorbay) (Sena Önen, Deniz Esin Emer project)
 3. R for Data Science book
