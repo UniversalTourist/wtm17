@@ -1,0 +1,207 @@
+---
+title: "Creating Elegant Graphs with R Programming"
+author: "Hazel Kavili"
+date: "3/19/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R for beginners
+
+```{r}
+A <- 10 
+a <- 3
+print(paste("A is", A))
+print(paste("a is", a))
+cat("A and a are equal? = ", A == a)
+```
+
+```{r}
+myNumbers <- c(1:10)
+myNumbers
+rep(myNumbers, times = 3)
+twice <- rep(myNumbers, each = 2)
+twice
+```
+
+```{r}
+x <- c(1:15)
+seq(from = 2, to = 100, by = 2) -> y
+
+sum(x)
+min(x) 
+max(x)
+mean(x)
+var(x)
+sqrt(x)
+sd(x)
+length(x)
+```
+
+# Header1
+## Header2
+### Header3
+#### Header4
+##### Header5
+###### Header6
+
+### My ordered list
+1. apple
+2. banana
+3. milk
+
+
+
+#### My style
+Hello I am Hazel from **Istanbul** and  
+I am a **huge** fan of *Harry Potter*
+
+
+![Happy International Women's Day](/Users/hazelkavili/Desktop/iwd1.jpeg)
+
+
+### Hello, this is my [My Github Link](https://github.com/UniversalTourist)
+
+## Packages
+```{r, warning=FALSE, message = FALSE}
+library(tidyverse)
+library(tufte)
+```
+
+```{r, fig.width=5, fig.height=4, echo=TRUE}
+plot(mpg$displ, mpg$hwy)
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, color = class))
+```
+
+## Reading data file and having first impression of data
+```{r}
+movies <- read.csv("movies.csv",header=TRUE,sep=",")
+head(movies)
+tail(movies)
+dim(movies)
+unique(movies$country)
+summary(movies)
+```
+
+## dplyr functions on *movies* data set
+```{r}
+myData <- movies %>% select(country, title_year, imdb_score) %>% 
+  filter (imdb_score >= 6 & country == "UK") 
+
+head(myData)
+
+myDataImdb <- movies %>% select(country, title_year, imdb_score) %>% 
+  filter(country == "UK" | country == "USA" | country == "Canada" | country == "Germany")
+
+head(myDataImdb)
+
+myDataMean <- movies %>% select(country, imdb_score, title_year) %>% 
+  filter(country == "UK" | country == "USA") %>% 
+  group_by(country)  %>%  summarise(scoreMean = mean(imdb_score))
+
+myDataMean
+
+```
+
+
+## ggplot2 examples on *movies* data set
+#### *IMDB scores* vs *years* by *Countries*
+```{r}
+ggplot(data = myDataImdb) + 
+  geom_point(mapping = aes(x = title_year, y = imdb_score, color = country))
+```
+
+```{r}
+ggplot(data = myDataImdb, aes(x = title_year, y = imdb_score)) + 
+  geom_point(aes(color = country))
+```
+
+#### Top 10 Genres of movies
+```{r, warning=FALSE, error=FALSE}
+top10genres <- movies %>% select(genres)  %>% count(genres) %>% top_n(n = 10, wt = n)
+
+genresDisplay <- ggplot(data = top10genres) +
+  geom_bar(aes(x = reorder(genres,n), y =n, fill = genres),
+           stat = "identity") +
+  labs(y = "Frequencies", x = "Genre") 
+
+genresDisplay + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+### The effect of *Budget* on *IMDB scores*
+##### First, scale the budget values; because it's in millions. For good visualisation, scaling is important. Use "to" arguman for output range.
+```{r}
+movies$budget <- scales::rescale(movies$budget, to=c(0,10))
+
+budgetONscore <- ggplot(movies, aes(x = budget, y = imdb_score)) + 
+  geom_point(shape = 1) + geom_smooth(method = lm, se = TRUE) +
+  labs(x = "Budget(million $)",
+       y = "IMDB Scores",
+       title = "The effect of Budget on IMDB scores") +
+  theme(legend.position = "top",
+        plot.title = element_text(hjust=0.5)) +
+  theme_linedraw()
+
+budgetONscore
+
+```
+
+### *IMDB scores* of my favourite *actresses* in *years*
+
+```{r, fig.width=5, fig.height=4, echo=TRUE}
+womenData <- movies %>% select(actor_1_name, imdb_score, genres, title_year) %>% 
+  filter(actor_1_name == "Emma Watson" | actor_1_name == "Emma Stone" | actor_1_name == "Anne Hathaway" |
+           actor_1_name == "Salma Hayek" | actor_1_name == "Charlize Theron") 
+
+womenDataPlot <- ggplot(data = womenData) + 
+  geom_point(aes(x = title_year, y = imdb_score, color = genres,
+                 shape = actor_1_name), size = 2) +
+  labs(x = "Years",
+       y = "IMDB Scores",
+       title = "IMDB Scores of Actress in Years",
+       color = "Genre",
+       shape = "Actresses") +
+  theme(legend.position = "top",
+        plot.title = element_text(hjust = 0.5)) +
+  guides(shape = guide_legend(nrow = 2)) +
+  theme_minimal()
+
+```
+
+
+
+### Tufte Style Graphs 
+```{r}
+library(ggthemes)
+x <- 1967:1977
+y <- c(0.5,1.8,4.6,5.3,5.3,5.7,5.4,5,5.5,6,5)
+d <- data.frame(x, y)
+ggplot(d, aes(x,y)) + geom_line() + geom_point(size=3) + theme_tufte(base_size = 15) +
+  theme(axis.title=element_blank()) + geom_hline(yintercept = c(5,6), lty=2) + 
+  scale_y_continuous(breaks=seq(1, 6, 1), label=sprintf("$%s",seq(300,400,20))) + 
+  scale_x_continuous(breaks=x,label=x) +
+  annotate("text", x = c(1977,1977.2), y = c(1.5,5.5), adj=1,  family="serif",
+           label = c("Per capita\nbudget expandures\nin constant dollars", "5%"))
+```
+
+
+
+### Tufte Style IMDB Graphs
+
+```{r}
+ggplot(myDataImdb, aes(x = title_year, y = imdb_score)) + 
+  geom_point(size = 2, aes(color = country)) + 
+  theme_tufte(base_family = "serif", base_size = 10) 
+```
+
+
+
+
+
+
+
+
