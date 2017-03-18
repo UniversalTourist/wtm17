@@ -61,7 +61,8 @@ myDataMean <- movies %>% select(country, imdb_score, title_year) %>%
   filter(country == "UK" | country == "USA") %>% 
   group_by(country)  %>%  summarise(scoreMean = mean(imdb_score))
 
-top10genres <- movies %>% select(genres)  %>% count(genres) %>% top_n(n = 10, wt = n)
+top10genres <- movies %>% select(genres)  %>% 
+              count(genres) %>% top_n(n = 10, wt = n) #check for count and top_n functions later
 
 # ggplot  
 ggplot(data = myDataImdb) + 
@@ -72,13 +73,17 @@ ggplot(data = myDataImdb, aes(x = title_year, y = imdb_score)) +
 
 # geom_bar
 genresDisplay <- ggplot(data = genres) +
-  geom_bar(aes(x = reorder(genres,n), y =n, fill = genres),
-           stat = "identity") +
-  labs(y = "Frequencies", x = "Genre") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  geom_bar(aes(x = reorder(genres,n), y =n, fill = genres), 
+           stat = "identity") + #check for stat = "bin" later
+  labs(y = "Frequencies", x = "Genre") 
+
+genresDisplay + theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   theme_bw()
 
 # geom_point + geom_smooth 
+# first, scale budget  because budgets values are in millions 
+movies$budget <- scales::rescale(movies$budget, to=c(0,10))
+
 budgetsONscore <- ggplot(movies, aes(x = budget, y = imdb_score)) + 
   geom_point(shape = 1) + geom_smooth(method = lm, se = FALSE) +
   labs(x = "Budget",
@@ -89,7 +94,6 @@ budgetsONscore <- ggplot(movies, aes(x = budget, y = imdb_score)) +
 
 
 # IMDB scores of my favourite actresses in years
-
 womenData <- movies %>% select(actor_1_name, imdb_score, genres, title_year) %>% 
   filter(actor_1_name == "Emma Watson" | actor_1_name == "Emma Stone" | actor_1_name == "Anne Hathaway" |
            actor_1_name == "Salma Hayek" | actor_1_name == "Charlize Theron") 
@@ -108,7 +112,7 @@ womenDataPlot <- ggplot(data = womenData) +
   
 
 
-# tufte style
+# tufte style example from online resources
 library(ggplot2)
 library(ggthemes)
 x <- 1967:1977
@@ -122,23 +126,12 @@ ggplot(d, aes(x,y)) + geom_line() + geom_point(size=3) + theme_tufte(base_size =
            label = c("Per capita\nbudget expandures\nin constant dollars", "5%"))
 
 
+# basic tufte style for our data
 ggplot(myDataImdb, aes(x = title_year, y = imdb_score)) + 
   geom_point(size = 2, aes(color = country)) + 
   theme_tufte(base_family = "serif", base_size = 10) 
 
 
-
-
-
-library(dplyr)
-library(ggplot2)
-genres <- movies %>% select(genres)  %>% count(genres) %>% top_n(n = 10, wt = n)
-
-genresDisplay <- ggplot(data = genres) +
-  geom_bar(aes(x = reorder(genres,n), y =n, fill = genres),
-           stat = "identity") +
-  labs(y = "Frequencies", x = "Genre") +
-  theme_bw()
 
 
 
